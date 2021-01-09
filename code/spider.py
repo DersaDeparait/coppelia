@@ -54,7 +54,8 @@ class Spider:
         self.leg_move_spin_side_vertical = [0, 1, 0]
 
         self.engine_position_default = 90
-        self.engine_position_default2 = [90, 0, 90]#[90, 120, -25] # [90, 160, -30]
+        self.engine_position_default2 = [90, 0, 90]
+        #[90, 0, 90]#[90, 120, -25] # [90, 160, -30]
         self.engine_position_default_min = [0,0,-30]
         self.engine_position_default_max = [180, 180, 210]
 
@@ -290,7 +291,7 @@ class Spider:
 
 
     def move(self, client, output_data = None):
-        #self.update_engine(output_data)
+        self.update_engine(output_data)
         self.calculate_leg()
         self.send_data(client)
 
