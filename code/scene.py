@@ -206,16 +206,19 @@ class Scene:
 
         counter = 0
         normal_angle = (0, -1.5707963705062866, 0)
+        normal_z = 0.088
         for spider in self.spiders:
             spider.receive_position(self.client)
             self.fitnes[counter] += 5 + \
                 - abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
                 - abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
-                - abs(self.spiders[counter].get_rotation()[2] - normal_angle[2])
+                - abs(self.spiders[counter].get_rotation()[2] - normal_angle[2]) \
+                - 5 * abs(self.spiders[counter].get_position()[2] - normal_z)
             self.fitnes_radical[counter] += 5 + \
                                     - 1.2 * abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
                                     - 1.2 * abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
-                                    - 1.2 * abs(self.spiders[counter].get_rotation()[2] - normal_angle[2])
+                                    - 1.2 * abs(self.spiders[counter].get_rotation()[2] - normal_angle[2]) \
+                                    - 6 * abs(self.spiders[counter].get_position()[2] - normal_z)
             print("spin", self.spiders[counter].get_rotation(), self.fitnes[counter], self.fitnes_radical[counter])
 
             counter += 1
