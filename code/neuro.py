@@ -44,7 +44,7 @@ class Neuro:
                 for k in range(len(self.axon_weigh[i][j])):
                     dispers += self.axon_weigh[i][j][k]
                     counter+=1
-        dispers = dispers/counter
+        dispers = dispers / counter + 0.1
         for i in range(len(self.axon_weigh)):
             for j in range(len(self.axon_weigh[i])):
                 for k in range(len(self.axon_weigh[i][j])):

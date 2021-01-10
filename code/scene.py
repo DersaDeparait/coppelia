@@ -4,6 +4,8 @@ from code.excel import ExcelManager
 import b0RemoteApi
 import time
 from random import choices
+import random
+import math
 import copy
 
 class Scene:
@@ -21,14 +23,17 @@ class Scene:
                          ,Spider("#3"), Spider("#4"), Spider("#5"), Spider("#6")
                          ,Spider("#7"), Spider("#8"), Spider("#9"), Spider("#10")
                          ,Spider("#11"),Spider("#12"),Spider("#13"),Spider("#14")
+                         ,Spider("#15"),Spider("#16"),Spider("#17"), Spider("#18")
+                         ,Spider("#19"),Spider("#20"),Spider("#21")#, Spider("#22")
                         ]
-        self.excel = ExcelManager(name=1, size=len(self.spiders))
+        self.excel = ExcelManager(name=2, size=len(self.spiders))
 
         self.neuro = []
         self.neuro_father = Neuro()
         self.neuro_mother = Neuro()
         self.neuro.append(Neuro())
         self.fitnes = [0] * len(self.spiders)
+        self.fitnes_radical = [0] * len(self.spiders)
 
         high, weigh = self.excel.read(0)
         if (high != None):
@@ -65,6 +70,7 @@ class Scene:
         self.counter = 0
         self.life_time = 399
         self.count_of_alive = 3
+        self.mutation_power = 0.001
 
 
     def start(self):
@@ -102,11 +108,13 @@ class Scene:
         self.flag = True
 
 
-        self.fitnes = []
-        self.fitnes_radical = []
+        # self.fitnes = []
+        # self.fitnes_radical = []
         for i in range(len(self.spiders)):
-            self.fitnes.append((self.spiders[i].get_position()[1] + 10) / 20.0)
-            self.fitnes_radical.append(((self.spiders[i].get_position()[1]) * 10) if ((self.spiders[i].get_position()[1]) * 10) > 0 else 0.01)
+            self.fitnes[i] += ((self.spiders[i].get_position()[1] + 10) / 20.0) * self.life_time
+            self.fitnes_radical[i] += (self.spiders[i].get_position()[1]) * 10 * self.life_time
+            if self.fitnes_radical[i] <= 0: self.fitnes_radical[i] = 0.001
+            if self.fitnes[i] <= 0: self.fitnes[i] = 0.001
             print(self.fitnes[i], self.fitnes_radical[i])
 
 
@@ -171,35 +179,56 @@ class Scene:
             neuro_new.append(self.neuro[self.alive[i]])
         self.neuro = neuro_new
         for i in range(self.count_of_alive, len(self.spiders)):
-            self.neuro.append(Neuro.crossover_one(self.neuro_father, self.neuro_mother))
+            if random.random() > 0.5:
+                self.neuro.append(Neuro.crossover_one(self.neuro_father, self.neuro_mother))
+            else:
+                self.neuro.append(Neuro.crossover_one(self.neuro_mother, self.neuro_father))
         for i in range(len(self.spiders)):
             self.spiders[i].reset_position()
 
     def __make_mutation(self):
         for i in range(len(self.spiders)):
-            self.neuro[i].make_mutation(0.01)
+            self.neuro[i].make_mutation(self.mutation_power)
+        print("Зроблена мутація")
 
     def __save_to_db(self):
+        print("Почався запис в ексель")
         for i in range(len(self.spiders)):
             self.excel.write_data2D(i, self.fitnes[i], self.neuro[i].axon_weigh)
+        print("Завершився запис в ексель")
+
 
 
 
     def simulationStepStarted(self, msg):
         #simTime = msg[1][b'simulationTime']
         #print('Simulation step started', simTime)
+
+        counter = 0
+        normal_angle = (0, -1.5707963705062866, 0)
         for spider in self.spiders:
             spider.receive_position(self.client)
+            self.fitnes[counter] += 5 + \
+                - abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
+                - abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
+                - abs(self.spiders[counter].get_rotation()[2] - normal_angle[2])
+            self.fitnes_radical[counter] += 5 + \
+                                    - 1.2 * abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
+                                    - 1.2 * abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
+                                    - 1.2 * abs(self.spiders[counter].get_rotation()[2] - normal_angle[2])
+            print("spin", self.spiders[counter].get_rotation(), self.fitnes[counter], self.fitnes_radical[counter])
+
+            counter += 1
 
     def simulationStepDone(self, msg):
         #simTime = msg[1][b'simulationTime']
         #print('Simulation step done. Simulation time: ', simTime)
 
         for i in range(len(self.spiders)):
-            to_move = self.neuro[i].calculate(self.spiders[i].get_all())
-            print(to_move)
-            self.spiders[i].move(self.client, output_data =to_move)
+            self.spiders[i].move(self.client, output_data = self.neuro[i].calculate(self.spiders[i].get_all()))
         self.do_next_step = True
+        self.fitnes = [0] * len(self.spiders)
+        self.fitnes_radical = [0] * len(self.spiders)
         self.timer()
     def timer(self):
         self.counter += 1

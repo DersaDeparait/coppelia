@@ -54,7 +54,7 @@ class Spider:
         self.leg_move_spin_side_vertical = [0, 1, 0]
 
         self.engine_position_default = 90
-        self.engine_position_default2 = [90, 0, 90]
+        self.engine_position_default2 = [90, 120, -25]
         #[90, 0, 90]#[90, 120, -25] # [90, 160, -30]
         self.engine_position_default_min = [0,0,-30]
         self.engine_position_default_max = [180, 180, 210]
@@ -132,7 +132,7 @@ class Spider:
         self.received_object_rotation_error = message[0]
         self.received_object_rotation = message[1]
 
-        # print(message[1])
+        # print("spin", message[1])
     def first_receive(self, client):
         # Отримуємо всі кінці ніг в абсолютній і відносній системі коордниат
         for i in range(len(self.name_of_leg)):
