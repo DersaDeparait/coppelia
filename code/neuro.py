@@ -36,6 +36,15 @@ class Neuro:
                     counter += 1
         return new_neuro
 
+    def randomize_new(neuro_0, neuro_1):
+        new_neuro = Neuro(neuro_0)
+        for i in range(len(new_neuro.axon_weigh)):
+            for j in range(len(new_neuro.axon_weigh[i])):
+                for k in range(len(new_neuro.axon_weigh[i][j])):
+                    if random.random() < 0.5:
+                        new_neuro.axon_weigh[i][j][k] = neuro_1.axon_weigh[i][j][k]
+        return new_neuro
+
     def make_mutation(self, percent):
         dispers = 0
         counter = 0
