@@ -226,7 +226,7 @@ class Scene:
         #print('Simulation step done. Simulation time: ', simTime)
 
         for i in range(len(self.spiders)):
-            self.spiders[i].move(self.client, output_data = self.neuro[i].calculate(self.spiders[i].get_all()))
+            self.spiders[i].move(self.client, output_data = self.neuro[i]._calculate(self.spiders[i].get_all()))
         self.do_next_step = True
         self.fitnes = [0] * len(self.spiders)
         self.fitnes_radical = [0] * len(self.spiders)
