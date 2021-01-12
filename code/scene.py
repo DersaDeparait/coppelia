@@ -2,6 +2,7 @@ from code.spider import Spider
 from code.neuro import Neuro
 from code.excel import ExcelManager
 import b0RemoteApi
+import code.config as config
 import time
 from random import choices
 import random
@@ -10,24 +11,26 @@ import copy
 
 class Scene:
     def __init__(self):
+        self.__set_connetcion_variables_to_lib_files()
+
+        self.__create_spiders()
+        self.__create_or_connect_to_file()
+        self.__create_neuro()
+        self.__set_parameters_of_neuro()
+
+        self.__set_parameters_for_loop_work()
+
+    def __set_connetcion_variables_to_lib_files(self):
         self.python_client = 'b0RemoteApi_pythonClient'
         self.remote_api = 'b0RemoteApi_first'
         self.client = None
-
-        self.do_next_step = True
-        self.flag = True
-
-
-
-        self.spiders = [  Spider(),     Spider("#0"), Spider("#1"), Spider("#2")
-                         ,Spider("#3"), Spider("#4"), Spider("#5"), Spider("#6")
-                         ,Spider("#7"), Spider("#8"), Spider("#9"), Spider("#10")
-                         ,Spider("#11"),Spider("#12"),Spider("#13"),Spider("#14")
-                         ,Spider("#15"),Spider("#16"),Spider("#17"), Spider("#18")
-                         ,Spider("#19"),Spider("#20"),Spider("#21")#, Spider("#22")
-                        ]
-        self.excel = ExcelManager(name=2, size=len(self.spiders))
-
+    def __create_spiders(self):
+        self.spiders = [Spider()]
+        for i in range(1, config.NUMBER_OF_SPIDERS):
+            self.spiders.append(Spider("#{}".format(i - 1)))
+    def __create_or_connect_to_file(self):
+        self.excel = ExcelManager(name=config.FILE_NAME, size=len(self.spiders))
+    def __create_neuro(self):
         self.neuro = []
         self.neuro_father = Neuro()
         self.neuro_mother = Neuro()
@@ -58,52 +61,58 @@ class Scene:
                             count += 1
                             self.neuro[w].axon_weigh[i][j][k] \
                                 = weigh[to_add + k + j * len(self.neuro[w].axon_weigh[i][j])]
-
-
-
         else:
             for i in range(1, len(self.spiders)):
                 self.neuro.append(Neuro(mutant_power=1))
-
-        self.obj_hund_cube = None
-
+    def __set_parameters_of_neuro(self):
+        self.life_time = config.CYCLE_TIME
+        self.count_of_alive = config.COUNT_OF_ALIVE
+        self.mutation_power = config.MUTATION_POWER
+    def __set_parameters_for_loop_work(self):
+        self.do_next_step = True
+        self.flag = True
         self.counter = 0
-        self.life_time = 399
-        self.count_of_alive = 3
-        self.mutation_power = 0.001
+
 
 
     def start(self):
         while True:
             with b0RemoteApi.RemoteApiClient(self.python_client, self.remote_api) as self.client:
-                self.add_method()
-                self.add_objects()
-                self.start_simulation()
-                self.loop()
-                self.finish_simulation()
-                self.remake_neural_network()
+                self.__add_method()
+                self.__add_objects()
+                self.__start_simulation()
+
+                self.__loop()
+
+                self.__finish_simulation()
+                self.__remake_neural_network()
             time.sleep(1)
 
-
-    def add_method(self):
+    def __add_method(self):
         self.client.simxSynchronous(True)
         self.client.simxGetSimulationStepStarted(self.client.simxDefaultSubscriber(self.simulationStepStarted))
         self.client.simxGetSimulationStepDone(self.client.simxDefaultSubscriber(self.simulationStepDone))
-    def add_objects(self):
+    def __add_objects(self):
         #err_hand_cube, self.obj_hund_cube = self.client.simxGetObjectHandle('Cuboid', self.client.simxServiceCall())
         for spider in self.spiders:
             spider.set_robot(self.client)
-    def start_simulation(self):
+    def __start_simulation(self):
         self.client.simxStartSimulation(self.client.simxDefaultPublisher())
-    def loop(self):
+    def __loop(self):
         while self.flag:
             if self.do_next_step:
                 self.do_next_step = False
                 self.client.simxSynchronousTrigger()
             self.client.simxSpinOnce()
-    def finish_simulation(self):
+    def __finish_simulation(self):
         self.client.simxStopSimulation(self.client.simxDefaultPublisher())
-    def remake_neural_network(self):
+    def __remake_neural_network(self):
+        self.remake_neural()
+
+
+
+
+    def remake_neural(self):
         self.counter = 0
         self.flag = True
 
@@ -135,8 +144,6 @@ class Scene:
         self.__make_new_population()
         self.__make_mutation()
         self.__save_to_db()
-
-
     def __make_parents(self):
         self.__roulette()
     def __tournament(self): pass
@@ -153,7 +160,6 @@ class Scene:
         self.neuro_mother = self.neuro[self.index_mother]
         self.excel.write_data2D_father(self.fitnes[self.index_father], self.neuro_father.axon_weigh)
         self.excel.write_data2D_mother(self.fitnes[self.index_mother], self.neuro_mother.axon_weigh)
-
     def __make_who_not_die(self):
         self.alive = []
         index = []
@@ -168,11 +174,6 @@ class Scene:
                 else_number = choices(index, weights=self.fitnes_radical, k=1)[0]
                 print("new {}, all {}".format(else_number, self.alive))
             self.alive.append(else_number)
-
-
-
-
-
     def __make_new_population(self):
         neuro_new = []
         for i in range(self.count_of_alive):
@@ -180,24 +181,20 @@ class Scene:
         self.neuro = neuro_new
         for i in range(self.count_of_alive, len(self.spiders)):
             if random.random() > 0.5:
-                self.neuro.append(Neuro.crossover_one(self.neuro_father, self.neuro_mother))
+                self.neuro.append(Neuro.randomize_new(self.neuro_father, self.neuro_mother))
             else:
-                self.neuro.append(Neuro.crossover_one(self.neuro_mother, self.neuro_father))
+                self.neuro.append(Neuro.randomize_new(self.neuro_mother, self.neuro_father))
         for i in range(len(self.spiders)):
             self.spiders[i].reset_position()
-
     def __make_mutation(self):
         for i in range(len(self.spiders)):
             self.neuro[i].make_mutation(self.mutation_power)
         print("Зроблена мутація")
-
     def __save_to_db(self):
         print("Почався запис в ексель")
         for i in range(len(self.spiders)):
             self.excel.write_data2D(i, self.fitnes[i], self.neuro[i].axon_weigh)
         print("Завершився запис в ексель")
-
-
 
 
     def simulationStepStarted(self, msg):
@@ -223,6 +220,7 @@ class Scene:
 
             counter += 1
 
+
     def simulationStepDone(self, msg):
         #simTime = msg[1][b'simulationTime']
         #print('Simulation step done. Simulation time: ', simTime)
@@ -232,8 +230,8 @@ class Scene:
         self.do_next_step = True
         self.fitnes = [0] * len(self.spiders)
         self.fitnes_radical = [0] * len(self.spiders)
-        self.timer()
-    def timer(self):
+        self.__timer()
+    def __timer(self):
         self.counter += 1
         if self.counter > self.life_time:
             self.flag = False

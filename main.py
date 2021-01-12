@@ -1,4 +1,3 @@
-# from code.scene import Scene
 from code.scene import Scene
 
 
