@@ -130,7 +130,7 @@ class Web:
 
 
 
-    def crossover_one(self, neuro_1):
+    def cross_crossover_one(self, neuro_1):
         new_neuro = Web(web = self)
         sum = 0
         for i in range(len(new_neuro.axon_weigh)):
@@ -159,19 +159,65 @@ class Web:
                     new_neuro.axon_bias[i] = neuro_1.axon_bias[i]
                 counter += 1
         return new_neuro
+    def cross_crossover_several(self, neuro_1, point_number : int = 2):
+        if point_number < 1: point_number = 1
 
-    def randomize_new(neuro_0, neuro_1):
-        new_neuro = Neuro(neuro_0)
+        new_neuro = Web(web = self)
+        sum = 0
         for i in range(len(new_neuro.axon_weigh)):
             for j in range(len(new_neuro.axon_weigh[i])):
-                for k in range(len(new_neuro.axon_weigh[i][j])):
-                    if random.random() < 0.5:
-                        new_neuro.axon_weigh[i][j][k] = neuro_1.axon_weigh[i][j][k]
+                sum += 1
+            sum += 1
+        if point_number >= sum: point_number = sum
+
+        possible_points = [i for i in range(sum)]
+        points = []
+        for i in range(point_number):
+            number = random.choice(possible_points)
+            points.append(number)
+            possible_points.remove(number)
+
+        points.sort()
+
+        start_parent = random.choice([False, True])
+
+        counter = 0
+        for i in range(len(new_neuro.axon_weigh)):
+            for j in range(len(new_neuro.axon_weigh[i])):
+                if len(points) > 0 and counter > points[0]:
+                    start_parent = not start_parent
+                    points.pop(0)
+                if start_parent:
+                    new_neuro.axon_weigh[i][j] = neuro_1.axon_weigh[i][j]
+                counter += 1
+            if len(points) > 0 and counter > points[0]:
+                start_parent = not start_parent
+                points.pop(0)
+            if start_parent:
+                new_neuro.axon_bias[i] = neuro_1.axon_bias[i]
+            counter += 1
         return new_neuro
 
-    # cross_crossover_one, cross_crossover_two, cross_crossover_several, cross_crossover_multi_several, cross_crossover_cycle
-    # cross_average, cross_lineral, cross_discret, cross_interjacent
-    # bias
+    def cross_randomize(self, neuro_1):
+        new_neuro = Web(web = self)
+        for i in range(len(new_neuro.axon_weigh)):
+            for j in range(len(new_neuro.axon_weigh[i])):
+                if random.random() < 0.5:
+                    new_neuro.axon_weigh[i][j] = neuro_1.axon_weigh[i][j]
+            if random.random() < 0.5:
+                new_neuro.axon_bias[i] = neuro_1.axon_bias[i]
+        return new_neuro
+    def cross_average(self, neuro_1):
+        new_neuro = Web(web=self)
+        for i in range(len(new_neuro.axon_weigh)):
+            for j in range(len(new_neuro.axon_weigh[i])):
+                new_neuro.axon_weigh[i][j] = random.uniform(new_neuro.axon_weigh[i][j], neuro_1.axon_weigh[i][j])
+            new_neuro.axon_bias[i] = random.uniform(new_neuro.axon_bias[i], neuro_1.axon_bias[i])
+        return new_neuro
+
+    # cross_crossover_multi_several, cross_crossover_cycle
+    # cross_lineral, cross_discret, cross_interjacent
+    # fitnes
 
     def calculate_all(self, input):
         self._set_input(input)
@@ -203,5 +249,5 @@ webM.axon_bias = [-13, -14]
 print("mother", webM.axon_weigh, webM.axon_bias)
 
 for i in range(1000):
-    child = web.crossover_one(webM)
+    child = webM.cross_crossover_several(web, 4)
     print("child {}".format(i), child.axon_weigh, child.axon_bias)
