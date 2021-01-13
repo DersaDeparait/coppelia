@@ -176,7 +176,6 @@ class Web:
             number = random.choice(possible_points)
             points.append(number)
             possible_points.remove(number)
-
         points.sort()
 
         start_parent = random.choice([False, True])
@@ -198,6 +197,50 @@ class Web:
             counter += 1
         return new_neuro
 
+    def cross_crossover_multi_several(self, neuro, point_number : int = 3, random_sequence:bool = True):
+        if point_number < 1: point_number = 1
+
+        new_neuro = Web(web = self)
+        sum = 0
+        for i in range(len(new_neuro.axon_weigh)):
+            for j in range(len(new_neuro.axon_weigh[i])):
+                sum += 1
+            sum += 1
+        if point_number >= sum: point_number = sum
+
+        possible_points = [i for i in range(sum)]
+        points = []
+        for i in range(point_number):
+            number = random.choice(possible_points)
+            points.append(number)
+            possible_points.remove(number)
+        points.sort()
+
+        neuro.insert(0, self)
+        if random_sequence: neuro_sequence = random.choices(neuro, k = len(points) + 1)
+        else:
+            neuro_sequence = random.choice([
+                [neuro[i % len(neuro)] for i in range(len(points) + 1)],
+                [neuro[len(neuro) - i % len(neuro) - 1] for i in range(len(points) + 1)]
+            ])
+
+
+        counter = 0
+        index = 0
+        for i in range(len(new_neuro.axon_weigh)):
+            for j in range(len(new_neuro.axon_weigh[i])):
+                if len(points) > 0 and counter > points[0]:
+                    index += 1
+                    points.pop(0)
+                new_neuro.axon_weigh[i][j] = neuro_sequence[index].axon_weigh[i][j]
+                counter += 1
+            if len(points) > 0 and counter > points[0]:
+                index += 1
+                points.pop(0)
+            new_neuro.axon_bias[i] = neuro_sequence[index].axon_bias[i]
+            counter += 1
+        return new_neuro
+
     def cross_randomize(self, neuro_1):
         new_neuro = Web(web = self)
         for i in range(len(new_neuro.axon_weigh)):
@@ -215,7 +258,7 @@ class Web:
             new_neuro.axon_bias[i] = random.uniform(new_neuro.axon_bias[i], neuro_1.axon_bias[i])
         return new_neuro
 
-    # cross_crossover_multi_several, cross_crossover_cycle
+    # cross_crossover_cycle
     # cross_lineral, cross_discret, cross_interjacent
     # fitnes
 
@@ -238,16 +281,29 @@ class Web:
         return self.neurons[-1]
 
 web = Web(layers=[2, 3, 2])
-web.axon_weigh = [[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]]
-web.axon_bias = [13, 14]
+web.axon_weigh = [[5, 5, 5, 5, 5, 5], [5, 5, 5, 5, 5, 5]]
+web.axon_bias = [5, 5]
 # web.set_function(lambda number: math.tanh(number))
 print("father", web.axon_weigh, web.axon_bias)
 
 webM = Web(layers = [2, 3, 2])
-webM.axon_weigh = [[-1, -2, -3, -4, -5, -6], [-7, -8, -9, -10, -11, -12]]
-webM.axon_bias = [-13, -14]
+webM.axon_weigh = [[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1]]
+webM.axon_bias = [1, 1]
 print("mother", webM.axon_weigh, webM.axon_bias)
 
+webM2 = Web(layers = [2, 3, 2])
+webM2.axon_weigh = [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+webM2.axon_bias = [0, 0]
+print("else woman", webM2.axon_weigh, webM2.axon_bias)
+
+webM3 = Web(layers = [2, 3, 2])
+webM3.axon_weigh = [[3, 3, 3, 3, 3, 3], [3, 3, 3, 3, 3, 3]]
+webM3.axon_bias = [3, 3]
+print("last woman", webM3.axon_weigh, webM3.axon_bias)
+
+print()
+
 for i in range(1000):
-    child = webM.cross_crossover_several(web, 4)
+    # child = web.cross_crossover_one(webM2)
+    child = web.cross_crossover_multi_several([webM, webM2, webM3], 3, random_sequence=False)
     print("child {}".format(i), child.axon_weigh, child.axon_bias)
