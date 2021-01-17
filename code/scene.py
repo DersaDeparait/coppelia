@@ -1,3 +1,4 @@
+from code.character import Character
 from code.spider import Spider
 from code.neuro import Neuro
 from code.excel import ExcelManager
@@ -6,8 +7,6 @@ import code.config as config
 import time
 from random import choices
 import random
-import math
-import copy
 
 class Scene:
     def __init__(self):
@@ -19,12 +18,15 @@ class Scene:
         self.__set_parameters_of_neuro()
 
         self.__set_parameters_for_loop_work()
-
     def __set_connetcion_variables_to_lib_files(self):
         self.python_client = 'b0RemoteApi_pythonClient'
         self.remote_api = 'b0RemoteApi_first'
         self.client = None
     def __create_spiders(self):
+        self.characters = []
+        for i in range(config.NUMBER_OF_SPIDERS):
+            self.characters.append(Character())
+
         self.spiders = [Spider()]
         for i in range(1, config.NUMBER_OF_SPIDERS):
             self.spiders.append(Spider("#{}".format(i - 1)))
