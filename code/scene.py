@@ -32,6 +32,7 @@ class Scene:
             self.spiders.append(Spider("#{}".format(i - 1)))
     def __create_or_connect_to_file(self):
         self.excel = ExcelManager(name=config.FILE_NAME, size=len(self.spiders))
+        self.excel = CscManager(name=config.FILE_NAME, size=len(self.spiders))
     def __create_neuro(self):
         self.neuro = []
         self.neuro_father = Neuro()
