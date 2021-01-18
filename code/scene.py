@@ -8,6 +8,7 @@ import b0RemoteApi
 from code.spider import Spider
 from code.neuro import Neuro
 from code.excel import ExcelManager
+from code.character import Character
 import code.config as code_config
 
 class Scene:
@@ -18,6 +19,12 @@ class Scene:
         self.__init_config()
         self.__init_create_spiders()
         self.__init_read_from_file()
+    def __init_log(self):
+        self.show_info = code_config.SHOW_INFO  # Виводить в консоль дані
+        self.time_start = datetime.now()
+        self.time_last_print = datetime.now()
+        self.time_after_beggining = 0
+        self.time_after_last_print = 0
     def __init_coppelia(self):
         self.python_client = 'b0RemoteApi_pythonClient'
         self.remote_api = 'b0RemoteApi_first'
@@ -33,6 +40,10 @@ class Scene:
         self.count_of_alive_after_epoch = code_config.COUNT_OF_ALIVE_AFTER_EPOCH
         self.mutation_power = code_config.MUTATION_POWER
     def __init_create_spiders(self):
+        # self.character = [Character()]
+        # for i in range(self.number_of_spiders):
+        #     self.character.append("#{}".format(i))
+
         self.spiders = [Spider(), Spider("#0"), Spider("#1"), Spider("#2")
             , Spider("#3"), Spider("#4"), Spider("#5"), Spider("#6")
             , Spider("#7"), Spider("#8"), Spider("#9"), Spider("#10")
@@ -75,51 +86,102 @@ class Scene:
         else:
             for i in range(1, len(self.spiders)):
                 self.neuro.append(Neuro(mutant_power=1))
-    def __init_log(self):
-        self.show_info = code_config.SHOW_INFO # Виводить в консоль дані
-        self.time_start = datetime.now()
-        self.time_last_print = datetime.now()
-        self.time_after_beggining = 0
-        self.time_after_last_print = 0
 
-    def __print_time(self, message = ""):
+
+    def _print_time(self, message = ""):
         if self.show_info:
             self.time_after_beggining = datetime.now() - self.time_start
             self.time_after_last_print = datetime.now() - self.time_last_print
             self.time_last_print = datetime.now()
-            print("{0}  -  {1}".format(self.time_after_last_print, self.time_after_beggining))
-            print(message)
-
+            print("------- {0}  -  {1}  -  {2}  ---------------------------------"
+                  .format(self.time_after_last_print, self.time_after_beggining, message))
+            print()
 
 
     def start(self):
         while True:
+            self._print_time("Нова епоха: {}".format(self.epoch))
             with b0RemoteApi.RemoteApiClient(self.python_client, self.remote_api) as self.client:
-                self.add_method()
-                self.add_objects()
-                self.start_simulation()
-                self.loop()
-                self.finish_simulation()
-                self.remake_neural_network()
+                self._print_time("Підключилося до копелії")
+                self.__add_method()
+                self._print_time("Додано методи")
+                self.__add_objects()
+                self._print_time("Додано обєкти")
+                self.__start_simulation()
+                self._print_time("Почалася симуляція")
+                self.__loop()
+                self._print_time("Закінчився основний цикл")
+                self.__finish_simulation()
+                self._print_time("Зкнічили симуляцію")
+                self.__remake_neural_network()
+                self._print_time("Переробили нейронку")
+            self._print_time("Вийшли із роботи із підєднанням")
             time.sleep(1)
-    def add_method(self):
+            self._print_time("Завершили епоху")
+            self.epoch += 1
+    def __add_method(self):
         self.client.simxSynchronous(True)
         self.client.simxGetSimulationStepStarted(self.client.simxDefaultSubscriber(self.simulationStepStarted))
         self.client.simxGetSimulationStepDone(self.client.simxDefaultSubscriber(self.simulationStepDone))
-    def add_objects(self):
+    def __add_objects(self):
         #err_hand_cube, self.obj_hund_cube = self.client.simxGetObjectHandle('Cuboid', self.client.simxServiceCall())
-        for spider in self.spiders:
-            spider.set_robot(self.client)
-    def start_simulation(self):
+        for i in range(len(self.spiders)):
+            self.spiders[i].set_robot(self.client)
+            self._print_time("Завершено робот {}".format(i))
+    def __start_simulation(self):
         self.client.simxStartSimulation(self.client.simxDefaultPublisher())
-    def loop(self):
+    def __loop(self):
         while self.flag:
             if self.do_next_step:
                 self.do_next_step = False
                 self.client.simxSynchronousTrigger()
             self.client.simxSpinOnce()
-    def finish_simulation(self):
+    def __finish_simulation(self):
         self.client.simxStopSimulation(self.client.simxDefaultPublisher())
+    def __remake_neural_network(self):
+        self.remake_neural_network()
+
+
+    def simulationStepStarted(self, msg):
+        #simTime = msg[1][b'simulationTime']
+        #print('Simulation step started', simTime)
+        pass
+    def simulationStepDone(self, msg):
+        #simTime = msg[1][b'simulationTime']
+        #print('Simulation step done. Simulation time: ', simTime)
+
+        counter = 0
+        normal_angle = (0, -1.5707963705062866, 0)
+        normal_z = 0.088
+        for spider in self.spiders:
+            spider.receive_position(self.client)
+            self.fitnes[counter] += 5 + \
+                                    - abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
+                                    - abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
+                                    - abs(self.spiders[counter].get_rotation()[2] - normal_angle[2]) \
+                                    - 5 * abs(self.spiders[counter].get_position()[2] - normal_z)
+            self.fitnes_radical[counter] += 5 + \
+                                            - 1.2 * abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
+                                            - 1.2 * abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
+                                            - 1.2 * abs(self.spiders[counter].get_rotation()[2] - normal_angle[2]) \
+                                            - 6 * abs(self.spiders[counter].get_position()[2] - normal_z)
+            # print("spin", self.spiders[counter].get_rotation(), self.fitnes[counter], self.fitnes_radical[counter])
+            counter += 1
+
+        for i in range(len(self.spiders)):
+            self.spiders[i].move(self.client, output_data = self.neuro[i].calculate(self.spiders[i].get_all()))
+        self.do_next_step = True
+        self.fitnes = [0] * len(self.spiders)
+        self.fitnes_radical = [0] * len(self.spiders)
+        self.__add_counter()
+    def __add_counter(self):
+        self._print_time("{}/{}".format(self.counter,self.life_time))
+        self.counter += 1
+        if self.counter > self.life_time:
+            self.flag = False
+
+
+
     def remake_neural_network(self):
         self.counter = 0
         self.flag = True
@@ -152,8 +214,6 @@ class Scene:
         self.__make_new_population()
         self.__make_mutation()
         self.__save_to_db()
-
-
     def __make_parents(self):
         self.__roulette()
     def __tournament(self): pass
@@ -170,7 +230,6 @@ class Scene:
         self.neuro_mother = self.neuro[self.index_mother]
         self.excel.write_data2D_father(self.fitnes[self.index_father], self.neuro_father.axon_weigh)
         self.excel.write_data2D_mother(self.fitnes[self.index_mother], self.neuro_mother.axon_weigh)
-
     def __make_who_not_die(self):
         self.alive = []
         index = []
@@ -185,11 +244,6 @@ class Scene:
                 else_number = choices(index, weights=self.fitnes_radical, k=1)[0]
                 print("new {}, all {}".format(else_number, self.alive))
             self.alive.append(else_number)
-
-
-
-
-
     def __make_new_population(self):
         neuro_new = []
         for i in range(self.count_of_alive_after_epoch):
@@ -202,56 +256,12 @@ class Scene:
                 self.neuro.append(Neuro.crossover_one(self.neuro_mother, self.neuro_father))
         for i in range(len(self.spiders)):
             self.spiders[i].reset_position()
-
     def __make_mutation(self):
         for i in range(len(self.spiders)):
             self.neuro[i].make_mutation(self.mutation_power)
         print("Зроблена мутація")
-
     def __save_to_db(self):
         print("Почався запис в ексель")
         for i in range(len(self.spiders)):
             self.excel.write_data2D(i, self.fitnes[i], self.neuro[i].axon_weigh)
         print("Завершився запис в ексель")
-
-
-
-
-    def simulationStepStarted(self, msg):
-        #simTime = msg[1][b'simulationTime']
-        #print('Simulation step started', simTime)
-
-        counter = 0
-        normal_angle = (0, -1.5707963705062866, 0)
-        normal_z = 0.088
-        for spider in self.spiders:
-            spider.receive_position(self.client)
-            self.fitnes[counter] += 5 + \
-                - abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
-                - abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
-                - abs(self.spiders[counter].get_rotation()[2] - normal_angle[2]) \
-                - 5 * abs(self.spiders[counter].get_position()[2] - normal_z)
-            self.fitnes_radical[counter] += 5 + \
-                                    - 1.2 * abs(self.spiders[counter].get_rotation()[0] - normal_angle[0]) \
-                                    - 1.2 * abs(self.spiders[counter].get_rotation()[1] - normal_angle[2]) \
-                                    - 1.2 * abs(self.spiders[counter].get_rotation()[2] - normal_angle[2]) \
-                                    - 6 * abs(self.spiders[counter].get_position()[2] - normal_z)
-            print("spin", self.spiders[counter].get_rotation(), self.fitnes[counter], self.fitnes_radical[counter])
-
-            counter += 1
-
-    def simulationStepDone(self, msg):
-        #simTime = msg[1][b'simulationTime']
-        #print('Simulation step done. Simulation time: ', simTime)
-
-        for i in range(len(self.spiders)):
-            self.spiders[i].move(self.client, output_data = self.neuro[i].calculate(self.spiders[i].get_all()))
-        self.do_next_step = True
-        self.fitnes = [0] * len(self.spiders)
-        self.fitnes_radical = [0] * len(self.spiders)
-        self.timer()
-    def timer(self):
-        self.counter += 1
-        if self.counter > self.life_time:
-            self.flag = False
-        print(self.counter, "//", self.life_time)
