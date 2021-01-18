@@ -21,6 +21,16 @@ class Neuro:
                     else:
                         self.axon_weigh[i][j].append(random.uniform(-1, 1))
 
+    def axon_line(self):
+        return self.flat_list(self.axon_weigh)
+    def flat_list(self, value, new_list=[]):
+        for i in value:
+            if type(i) == int or type(i) == float:
+                new_list.append(i)
+            else:
+                self.flat_list(i)
+        return new_list
+
     def crossover_one(neuro_0, neuro_1):
         new_neuro = Neuro(neuro_0)
         sum = 0

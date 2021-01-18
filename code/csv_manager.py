@@ -4,7 +4,7 @@ class CscManager:
     counter = 0
     list_of_writing = [0,1,2,3,4,5,7,10,15,20,25,30,35,40,50,60,70,80,90,100,110,120,140,160,180,200,220,250,275,300,325,350,375,400,450,500,550,600,650,700,750,800,850,900,950,1000]
     def __init__(self, name = 0):
-        self.name = "../code/result/name{}.csv".format(name)
+        self.name = "code/result/name{}.csv".format(name)
         self.data = pd.DataFrame()
         self.read()
 

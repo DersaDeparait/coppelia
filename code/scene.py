@@ -2,6 +2,7 @@ from code.character import Character
 from code.spider import Spider
 from code.neuro import Neuro
 from code.excel import ExcelManager
+from code.csv_manager import CscManager
 import b0RemoteApi
 import code.config as config
 import time
@@ -23,16 +24,16 @@ class Scene:
         self.remote_api = 'b0RemoteApi_first'
         self.client = None
     def __create_spiders(self):
-        self.characters = []
-        for i in range(config.NUMBER_OF_SPIDERS):
-            self.characters.append(Character())
+        # self.characters = []
+        # for i in range(config.NUMBER_OF_SPIDERS):
+        #     self.characters.append(Character())
 
         self.spiders = [Spider()]
         for i in range(1, config.NUMBER_OF_SPIDERS):
             self.spiders.append(Spider("#{}".format(i - 1)))
     def __create_or_connect_to_file(self):
-        self.excel = ExcelManager(name=config.FILE_NAME, size=len(self.spiders))
-        self.excel = CscManager(name=config.FILE_NAME, size=len(self.spiders))
+        # self.excel = ExcelManager(name=config.FILE_NAME, size=len(self.spiders))
+        self.csv_manager = CscManager(name=config.FILE_NAME)
     def __create_neuro(self):
         self.neuro = []
         self.neuro_father = Neuro()
@@ -41,32 +42,34 @@ class Scene:
         self.fitnes = [0] * len(self.spiders)
         self.fitnes_radical = [0] * len(self.spiders)
 
-        high, weigh = self.excel.read(0)
-        if (high != None):
-
-            count = 0
-            for i in range(len(self.neuro[0].axon_weigh)):
-                to_add = count
-                for j in range(len(self.neuro[0].axon_weigh[i])):
-                    for k in range(len(self.neuro[0].axon_weigh[i][j])):
-                        count += 1
-                        self.neuro[0].axon_weigh[i][j][k] \
-                            = weigh[to_add + k + j * len(self.neuro[0].axon_weigh[i][j])]
-
-            for w in range(1, len(self.spiders)):
-                high, weigh = self.excel.read(w)
-                self.neuro.append(Neuro())
-                count = 0
-                for i in range(len(self.neuro[w].axon_weigh)):
-                    to_add = count
-                    for j in range(len(self.neuro[w].axon_weigh[i])):
-                        for k in range(len(self.neuro[w].axon_weigh[i][j])):
-                            count += 1
-                            self.neuro[w].axon_weigh[i][j][k] \
-                                = weigh[to_add + k + j * len(self.neuro[w].axon_weigh[i][j])]
-        else:
-            for i in range(1, len(self.spiders)):
-                self.neuro.append(Neuro(mutant_power=1))
+        for i in range(1, len(self.spiders)):
+            self.neuro.append(Neuro(mutant_power = 1))
+        # high, weigh = self.excel.read(0)
+        # if (high != None):
+        #
+        #     count = 0
+        #     for i in range(len(self.neuro[0].axon_weigh)):
+        #         to_add = count
+        #         for j in range(len(self.neuro[0].axon_weigh[i])):
+        #             for k in range(len(self.neuro[0].axon_weigh[i][j])):
+        #                 count += 1
+        #                 self.neuro[0].axon_weigh[i][j][k] \
+        #                     = weigh[to_add + k + j * len(self.neuro[0].axon_weigh[i][j])]
+        #
+        #     for w in range(1, len(self.spiders)):
+        #         high, weigh = self.excel.read(w)
+        #         self.neuro.append(Neuro())
+        #         count = 0
+        #         for i in range(len(self.neuro[w].axon_weigh)):
+        #             to_add = count
+        #             for j in range(len(self.neuro[w].axon_weigh[i])):
+        #                 for k in range(len(self.neuro[w].axon_weigh[i][j])):
+        #                     count += 1
+        #                     self.neuro[w].axon_weigh[i][j][k] \
+        #                         = weigh[to_add + k + j * len(self.neuro[w].axon_weigh[i][j])]
+        # else:
+        #     for i in range(1, len(self.spiders)):
+        #         self.neuro.append(Neuro(mutant_power=1))
     def __set_parameters_of_neuro(self):
         self.life_time = config.CYCLE_TIME
         self.count_of_alive = config.COUNT_OF_ALIVE
@@ -122,31 +125,31 @@ class Scene:
 
         # self.fitnes = []
         # self.fitnes_radical = []
-        for i in range(len(self.spiders)):
-            self.fitnes[i] += ((self.spiders[i].get_position()[1] + 10) / 20.0) * self.life_time
-            self.fitnes_radical[i] += (self.spiders[i].get_position()[1]) * 10 * self.life_time
-            if self.fitnes_radical[i] <= 0: self.fitnes_radical[i] = 0.001
-            if self.fitnes[i] <= 0: self.fitnes[i] = 0.001
-            print(self.fitnes[i], self.fitnes_radical[i])
+        # for i in range(len(self.spiders)):
+        #     self.fitnes[i] += ((self.spiders[i].get_position()[1] + 10) / 20.0) * self.life_time
+        #     self.fitnes_radical[i] += (self.spiders[i].get_position()[1]) * 10 * self.life_time
+        #     if self.fitnes_radical[i] <= 0: self.fitnes_radical[i] = 0.001
+        #     if self.fitnes[i] <= 0: self.fitnes[i] = 0.001
+        #     print(self.fitnes[i], self.fitnes_radical[i])
+        #
+        #
+        # self.max = 0
+        # for i in range(1, len(self.spiders)):
+        #     if (self.fitnes[i]> self.fitnes[self.max]):
+        #         self.max = i
+        #         print(max, self.spiders[self.max].get_position()[1])
 
-
-        max = 0
-        for i in range(1, len(self.spiders)):
-            if (self.fitnes[i]> self.fitnes[max]):
-                max = i
-                print(max, self.spiders[max].get_position()[1])
-        self.excel.write_data2D_best(self.fitnes[max], self.neuro[max].axon_weigh)
         # print("best: ", max, "//", len(self.neuro))
         # for i in range(len(neuro_best.axon_weigh)):
         #     for j in range(len(neuro_best.axon_weigh[i])):
         #         print(i, j, neuro_best.axon_weigh[i][j])
 
 
-        self.__make_parents()
-        self.__make_who_not_die()
-        self.__make_new_population()
-        self.__make_mutation()
-        self.__save_to_db()
+        # self.__make_parents()
+        # self.__make_who_not_die()
+        # self.__make_new_population()
+        # self.__make_mutation()
+        # self.__save_to_db()
     def __make_parents(self):
         self.__roulette()
     def __tournament(self): pass
@@ -161,8 +164,6 @@ class Scene:
             self.index_mother = choices(index, weights=self.fitnes_radical, k=1)[0]
         self.neuro_father = self.neuro[self.index_father]
         self.neuro_mother = self.neuro[self.index_mother]
-        self.excel.write_data2D_father(self.fitnes[self.index_father], self.neuro_father.axon_weigh)
-        self.excel.write_data2D_mother(self.fitnes[self.index_mother], self.neuro_mother.axon_weigh)
     def __make_who_not_die(self):
         self.alive = []
         index = []
@@ -195,14 +196,28 @@ class Scene:
         print("Зроблена мутація")
     def __save_to_db(self):
         print("Почався запис в ексель")
+        # self.excel.write_data2D_best(self.fitnes[self.max], self.neuro[self.max].axon_weigh)
+
+        # self.excel.write_data2D_father(self.fitnes[self.index_father], self.neuro_father.axon_weigh)
+        # self.excel.write_data2D_mother(self.fitnes[self.index_mother], self.neuro_mother.axon_weigh)
+        dict_of_data = {"max fitnes" : self.fitnes[self.max]}
+
         for i in range(len(self.spiders)):
-            self.excel.write_data2D(i, self.fitnes[i], self.neuro[i].axon_weigh)
+            dict_of_data["fit {}".format(i)] = self.fitnes[i]
+
+        for i in range(len(self.spiders)):
+            axon_line = self.neuro[i].axon_line()
+            for j in range(len(axon_line)):
+                dict_of_data["s{}a{}".format(i, j)] = axon_line[j]
+
+        self.csv_manager.extend_row_by_dicts()
+        self.csv_manager.write_sometimes()
         print("Завершився запис в ексель")
 
 
     def simulationStepStarted(self, msg):
-        #simTime = msg[1][b'simulationTime']
-        #print('Simulation step started', simTime)
+        simTime = msg[1][b'simulationTime']
+        print('Simulation step started', simTime)
 
         counter = 0
         normal_angle = (0, -1.5707963705062866, 0)
@@ -225,8 +240,8 @@ class Scene:
 
 
     def simulationStepDone(self, msg):
-        #simTime = msg[1][b'simulationTime']
-        #print('Simulation step done. Simulation time: ', simTime)
+        simTime = msg[1][b'simulationTime']
+        print('Simulation step done. Simulation time: ', simTime)
 
         for i in range(len(self.spiders)):
             self.spiders[i].move(self.client, output_data = self.neuro[i]._calculate(self.spiders[i].get_all()))
