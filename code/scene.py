@@ -1,32 +1,45 @@
+from random import choices
+import random
+import time
+from datetime import datetime
+
+import b0RemoteApi
+
 from code.spider import Spider
 from code.neuro import Neuro
 from code.excel import ExcelManager
-import b0RemoteApi
-import time
-from random import choices
-import random
-import math
-import copy
+import code.config as code_config
 
 class Scene:
     def __init__(self):
+        self.__init_log()
+        self.__init_coppelia()
+        self.__init_loop_params()
+        self.__init_config()
+        self.__init_create_spiders()
+        self.__init_read_from_file()
+    def __init_coppelia(self):
         self.python_client = 'b0RemoteApi_pythonClient'
         self.remote_api = 'b0RemoteApi_first'
         self.client = None
-
+    def __init_loop_params(self):
         self.do_next_step = True
         self.flag = True
-
-
-
-        self.spiders = [  Spider(),     Spider("#0"), Spider("#1"), Spider("#2")
-                         ,Spider("#3"), Spider("#4"), Spider("#5"), Spider("#6")
-                         ,Spider("#7"), Spider("#8"), Spider("#9"), Spider("#10")
-                         ,Spider("#11"),Spider("#12"),Spider("#13"),Spider("#14")
-                         ,Spider("#15"),Spider("#16"),Spider("#17"), Spider("#18")
-                         ,Spider("#19"),Spider("#20"),Spider("#21")#, Spider("#22")
+        self.counter = 0
+        self.epoch = 0
+    def __init_config(self):
+        self.number_of_spiders = code_config.NUMBER_OF_SPIDERS
+        self.life_time = code_config.CYCLE_TIME
+        self.count_of_alive_after_epoch = code_config.COUNT_OF_ALIVE_AFTER_EPOCH
+        self.mutation_power = code_config.MUTATION_POWER
+    def __init_create_spiders(self):
+        self.spiders = [Spider(), Spider("#0"), Spider("#1"), Spider("#2")
+            , Spider("#3"), Spider("#4"), Spider("#5"), Spider("#6")
+            , Spider("#7"), Spider("#8"), Spider("#9"), Spider("#10")
+            , Spider("#11"), Spider("#12"), Spider("#13"), Spider("#14")
+            , Spider("#15"), Spider("#16"), Spider("#17"), Spider("#18")
+            , Spider("#19"), Spider("#20"), Spider("#21")  # , Spider("#22")
                         ]
-        self.excel = ExcelManager(name=2, size=len(self.spiders))
 
         self.neuro = []
         self.neuro_father = Neuro()
@@ -34,7 +47,8 @@ class Scene:
         self.neuro.append(Neuro())
         self.fitnes = [0] * len(self.spiders)
         self.fitnes_radical = [0] * len(self.spiders)
-
+    def __init_read_from_file(self):
+        self.excel = ExcelManager(name=2, size=len(self.spiders))
         high, weigh = self.excel.read(0)
         if (high != None):
 
@@ -58,19 +72,24 @@ class Scene:
                             count += 1
                             self.neuro[w].axon_weigh[i][j][k] \
                                 = weigh[to_add + k + j * len(self.neuro[w].axon_weigh[i][j])]
-
-
-
         else:
             for i in range(1, len(self.spiders)):
                 self.neuro.append(Neuro(mutant_power=1))
+    def __init_log(self):
+        self.show_info = code_config.SHOW_INFO # Виводить в консоль дані
+        self.time_start = datetime.now()
+        self.time_last_print = datetime.now()
+        self.time_after_beggining = 0
+        self.time_after_last_print = 0
 
-        self.obj_hund_cube = None
+    def __print_time(self, message = ""):
+        if self.show_info:
+            self.time_after_beggining = datetime.now() - self.time_start
+            self.time_after_last_print = datetime.now() - self.time_last_print
+            self.time_last_print = datetime.now()
+            print("{0}  -  {1}".format(self.time_after_last_print, self.time_after_beggining))
+            print(message)
 
-        self.counter = 0
-        self.life_time = 399
-        self.count_of_alive = 3
-        self.mutation_power = 0.001
 
 
     def start(self):
@@ -83,8 +102,6 @@ class Scene:
                 self.finish_simulation()
                 self.remake_neural_network()
             time.sleep(1)
-
-
     def add_method(self):
         self.client.simxSynchronous(True)
         self.client.simxGetSimulationStepStarted(self.client.simxDefaultSubscriber(self.simulationStepStarted))
@@ -161,7 +178,7 @@ class Scene:
             index.append(i)
         print(index)
         self.alive.append(choices(index, weights = self.fitnes_radical, k = 1)[0])
-        for i in range(self.count_of_alive - 1):
+        for i in range(self.count_of_alive_after_epoch - 1):
             else_number = choices(index, weights = self.fitnes_radical, k = 1)[0]
             while else_number in self.alive:
                 print("Same {}".format(else_number))
@@ -175,10 +192,10 @@ class Scene:
 
     def __make_new_population(self):
         neuro_new = []
-        for i in range(self.count_of_alive):
+        for i in range(self.count_of_alive_after_epoch):
             neuro_new.append(self.neuro[self.alive[i]])
         self.neuro = neuro_new
-        for i in range(self.count_of_alive, len(self.spiders)):
+        for i in range(self.count_of_alive_after_epoch, len(self.spiders)):
             if random.random() > 0.5:
                 self.neuro.append(Neuro.crossover_one(self.neuro_father, self.neuro_mother))
             else:
