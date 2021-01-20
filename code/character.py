@@ -135,13 +135,15 @@ class Character:
 
 
     @staticmethod
-    def save_to_db():
-        label = []
-        data = []
+    def save_to_db_fitnes():
+        d = {}
         for i in range(len(Character.characters_all)):
-            label.append("f-{}".format(i))
-            data.append(Character.characters_all[i].fitnes)
-        for i in range(len(Character.characters_all)):
-            label.append("fr-{}".format(i))
-            data.append(Character.characters_all[i].fitnes_radical)
-        return label, data
+            d["f_{}".format(i)] = [Character.characters_all[i].fitnes]
+            d["fr_{}".format(i)] = [Character.characters_all[i].fitnes_radical]
+        return d
+
+    @staticmethod
+    def save_to_db_last_neuro():
+        d = {}
+        d.update(Character.characters_all[Character.max].neuro.axon_line(0))
+        return d

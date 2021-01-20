@@ -29,6 +29,8 @@ class CscManager:
         self.set_data(pd.DataFrame(data = two_dimension_list, columns=columns))
     def set_data(self, df: pd.DataFrame):
         self.data = df
+    def set_data_by_dicts(self, data):
+        self.data = pd.DataFrame(data)
 
     def extend_row(self, to_add = {"C1":[5, 5], "C4":[5, 7]}):
         df = pd.DataFrame(to_add)
@@ -42,5 +44,4 @@ class CscManager:
             big_dict.update(**a)
         for k in kwargs:
             big_dict.update(**kwargs[k])
-        print(big_dict)
         self.extend_row(big_dict)

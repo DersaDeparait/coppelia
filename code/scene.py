@@ -7,6 +7,7 @@ import b0RemoteApi
 
 from code.spider import Spider
 from code.neuro import Neuro
+from code.csv_manager import CscManager
 from code.excel import ExcelManager
 from code.character import Character
 import code.config as code_config
@@ -44,7 +45,8 @@ class Scene:
         for i in range(self.number_of_spiders):
             self.character.append(Character())
     def __init_read_from_file(self):
-        self.excel = ExcelManager(name=2, size=len(self.character))
+        self.csv = CscManager(code_config.FILE_NAME)
+        self.csv2 = CscManager(1000 + code_config.FILE_NAME)
         # high, weigh = self.excel.read(0)
         # if (high != None):
         #
@@ -158,11 +160,7 @@ class Scene:
         self.__save_to_db()
 
     def __save_to_db(self):
-        # print("Почався запис в ексель")
-        # self.excel.write_data2D_best(self.fitnes[max], self.neuro[max].axon_weigh)
-        # self.excel.write_data2D_father(self.fitnes[self.index_father], self.neuro_father.axon_weigh)
-        # self.excel.write_data2D_mother(self.fitnes[self.index_mother], self.neuro_mother.axon_weigh)
-        # for i in range(len(self.spiders)):
-        #     self.excel.write_data2D(i, self.fitnes[i], self.neuro[i].axon_weigh)
-        # Character.save_to_db()
-        pass
+        self.csv.extend_row_by_dicts(map = Character.save_to_db_fitnes())
+        self.csv2.set_data_by_dicts(Character.save_to_db_last_neuro())
+        self.csv.write()
+        self.csv2.write()

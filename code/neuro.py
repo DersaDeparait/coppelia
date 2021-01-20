@@ -74,5 +74,20 @@ class Neuro:
 
             return self.calculate(self.output_data, layer_number + 1)
 
+    def axon_line(self, number):
+        to_return = {}
+        flat_list = self.__flat_list(self.axon_weigh)
+        for i in range(len(flat_list)):
+            to_return["n{}-a{}".format(number, i)] = [flat_list[i]]
+        return to_return
+
+    def __flat_list(self, value, new_list=[]):
+        for i in value:
+            if type(i) == int or type(i) == float:
+                new_list.append(i)
+            else:
+                self.__flat_list(i)
+        return new_list
+
     def _activation(self, number):
         return math.tanh(number)
