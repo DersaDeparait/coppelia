@@ -1,17 +1,17 @@
 from code.spider import Spider
-from code.neuro import Neuro
+from code.web import Web
 import code.config as code_config
 import random
 
 class Character:
     iterator = 0
-    neuro_father = None
-    neuro_mother = None
+    web_father = None
+    web_mother = None
     characters_all = []
-    characters_neuro_temp = []
+    characters_web_temp = []
     max = 0
 
-    def __init__(self, person = None, neuro = None):
+    def __init__(self, person = None, web = None):
         if person != None: self.person = person
         else:
             if Character.iterator == 0:
@@ -19,8 +19,8 @@ class Character:
             else:
                 self.person = Spider("#{}".format(Character.iterator-1))
 
-        if neuro != None: self.neuro = neuro
-        else: self.neuro = Neuro(mutant_power = 1)
+        if web != None: self.web = web
+        else: self.web = Web(randomize = 1)
 
         self.fitnes = 0
         self.fitnes_radical = 0
@@ -29,7 +29,7 @@ class Character:
 
         Character.characters_all.append(self)
 
-    def set_neuro(self): pass
+    def set_web(self): pass
 
     def connect_robot(self, client):
         self.person.set_robot(client)
@@ -46,7 +46,7 @@ class Character:
                                         - 1.2 * abs(self.person.get_rotation()[1] - normal_angle[2]) \
                                         - 1.2 * abs(self.person.get_rotation()[2] - normal_angle[2]) \
                                         - 6 * abs(self.person.get_position()[2] - normal_z)
-        self.person.move(client, output_data=self.neuro.calculate(self.person.get_all()))
+        self.person.move(client, output_data=self.web.calculate_all(self.person.get_all()))
 
     def do_end_of_epoch(self):
         self.fitnes += ((self.person.get_position()[1] + 10) / 20.0) * code_config.CYCLE_TIME
@@ -92,8 +92,8 @@ class Character:
         fitnes_all.pop(index_father)
         index_mother = random.choices(index_all, fitnes_all, k = 1)[0]
 
-        Character.neuro_father = Character.characters_all[index_father].neuro
-        Character.neuro_mother = Character.characters_all[index_mother].neuro
+        Character.web_father = Character.characters_all[index_father].web
+        Character.web_mother = Character.characters_all[index_mother].web
 
     @staticmethod
     def __make_who_not_die():
@@ -103,29 +103,26 @@ class Character:
             index_all.append(i)
             fitnes_all.append(Character.characters_all[i].fitnes)
 
-        Character.characters_neuro_temp = []
+        Character.characters_web_temp = []
         for i in range(code_config.COUNT_OF_ALIVE_AFTER_EPOCH):
             index = random.choices(index_all, fitnes_all, k = 1)[0]
-            Character.characters_neuro_temp.append(Character.characters_all[index].neuro)
+            Character.characters_web_temp.append(Character.characters_all[index].web)
             index_all.remove(index)
             fitnes_all.remove(Character.characters_all[index].fitnes)
 
     @staticmethod
     def __make_new_population():
-        start = len(Character.characters_neuro_temp)
+        start = len(Character.characters_web_temp)
         for i in range(start, code_config.NUMBER_OF_SPIDERS):
-            if random.random() > 0.5:
-                Character.characters_neuro_temp.append(Neuro.crossover_one(Character.neuro_father, Character.neuro_mother))
-            else:
-                Character.characters_neuro_temp.append(Neuro.crossover_one(Character.neuro_mother, Character.neuro_father))
+                Character.characters_web_temp.append(Character.web_father.cross_crossover_one(Character.web_mother))
 
         for i in range(len(Character.characters_all)):
-            Character.characters_all[i].neuro = Character.characters_neuro_temp[i]
+            Character.characters_all[i].web = Character.characters_web_temp[i]
 
     @staticmethod
     def __make_mutation():
         for i in range(len(Character.characters_all)):
-            Character.characters_all[i].neuro.make_mutation(code_config.MUTATION_POWER)
+            Character.characters_all[i].web.make_mutation(code_config.MUTATION_POWER)
 
     @staticmethod
     def __reset_spider_position():
@@ -143,7 +140,7 @@ class Character:
         return d
 
     @staticmethod
-    def save_to_db_last_neuro():
+    def save_to_db_last_web():
         d = {}
-        d.update(Character.characters_all[Character.max].neuro.axon_line(0))
+        d.update(Character.characters_all[Character.max].web.axon_line(0))
         return d

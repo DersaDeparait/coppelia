@@ -1,12 +1,8 @@
-from random import choices
-import random
 import time
 from datetime import datetime
 
 import b0RemoteApi
 
-from code.spider import Spider
-from code.neuro import Neuro
 from code.csv_manager import CscManager
 from code.excel import ExcelManager
 from code.character import Character
@@ -51,28 +47,28 @@ class Scene:
         # if (high != None):
         #
         #     count = 0
-        #     for i in range(len(self.neuro[0].axon_weigh)):
+        #     for i in range(len(self.web[0].axon_weigh)):
         #         to_add = count
-        #         for j in range(len(self.neuro[0].axon_weigh[i])):
-        #             for k in range(len(self.neuro[0].axon_weigh[i][j])):
+        #         for j in range(len(self.web[0].axon_weigh[i])):
+        #             for k in range(len(self.web[0].axon_weigh[i][j])):
         #                 count += 1
-        #                 self.neuro[0].axon_weigh[i][j][k] \
-        #                     = weigh[to_add + k + j * len(self.neuro[0].axon_weigh[i][j])]
+        #                 self.web[0].axon_weigh[i][j][k] \
+        #                     = weigh[to_add + k + j * len(self.web[0].axon_weigh[i][j])]
         #
         #     for w in range(1, len(self.spiders)):
         #         high, weigh = self.excel.read(w)
-        #         self.neuro.append(Neuro())
+        #         self.web.append(Neuro())
         #         count = 0
-        #         for i in range(len(self.neuro[w].axon_weigh)):
+        #         for i in range(len(self.web[w].axon_weigh)):
         #             to_add = count
-        #             for j in range(len(self.neuro[w].axon_weigh[i])):
-        #                 for k in range(len(self.neuro[w].axon_weigh[i][j])):
+        #             for j in range(len(self.web[w].axon_weigh[i])):
+        #                 for k in range(len(self.web[w].axon_weigh[i][j])):
         #                     count += 1
-        #                     self.neuro[w].axon_weigh[i][j][k] \
-        #                         = weigh[to_add + k + j * len(self.neuro[w].axon_weigh[i][j])]
+        #                     self.web[w].axon_weigh[i][j][k] \
+        #                         = weigh[to_add + k + j * len(self.web[w].axon_weigh[i][j])]
         # else:
         #     for i in range(1, len(self.spiders)):
-        #         self.neuro.append(Neuro(mutant_power=1))
+        #         self.web.append(Neuro(mutant_power=1))
 
 
     def _print_time(self, message = ""):
@@ -161,6 +157,6 @@ class Scene:
 
     def __save_to_db(self):
         self.csv.extend_row_by_dicts(map = Character.save_to_db_fitnes())
-        self.csv2.set_data_by_dicts(Character.save_to_db_last_neuro())
+        self.csv2.set_data_by_dicts(Character.save_to_db_last_web())
         self.csv.write()
         self.csv2.write()
