@@ -39,25 +39,18 @@ class Character:
         self.person.receive_position(client)
         # print(self.person.get_rotation())
         normal_angle = (0, -1.5707963705062866, 0)
-        p = 1
-        k = 10
-        self.fitnes += 1/(1 +
-                          math.pow(k * abs(self.person.get_rotation()[1] - normal_angle[1]), p) +
-                          math.pow(k * abs(self.person.get_rotation()[2] - normal_angle[2]), p)
-                          )
-        self.fitnes_radical += 1/(1 +
-                          math.pow(k * abs(self.person.get_rotation()[1] - normal_angle[1]), p) +
-                          math.pow(k * abs(self.person.get_rotation()[2] - normal_angle[2]), p)
-                          )
+        size = -20
+        self.fitnes += math.e**(size*(self.person.get_rotation()[1]-normal_angle[1])**2)
+        self.fitnes_radical += math.e**(size*(self.person.get_rotation()[1]-normal_angle[1])**2)
 
-        normal_z = 0.088
-        self.fitnes += math.e**(-200*(self.person.get_position()[2]-normal_z)**2)
-        self.fitnes_radical += math.e**(-200*(self.person.get_position()[2]-normal_z) ** 2)
+        # normal_z = 0.088
+        # self.fitnes += math.e**(-200*(self.person.get_position()[2]-normal_z)**2)
+        # self.fitnes_radical += math.e**(-200*(self.person.get_position()[2]-normal_z) ** 2)
 
-        self.fitnes += self.person.get_position()[1] / 10
-        self.fitnes_radical += self.person.get_position()[1] / 10
+        # self.fitnes += self.person.get_position()[1] / 10
+        # self.fitnes_radical += self.person.get_position()[1] / 10
 
-        # print(self.fitnes, self.fitnes_radical)
+        print(self.fitnes, self.fitnes_radical)
 
         self.person.move(client, output_data=self.web.calculate_all(self.person.get_all()))
 
