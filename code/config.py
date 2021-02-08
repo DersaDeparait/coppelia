@@ -1,4 +1,4 @@
-FILE_NAME = 1 # Імя файла для запису даних
+FILE_NAME = 3 # Імя файла для запису даних
 SHOW_INFO = True
 
 NUMBER_OF_SPIDERS = 23 #Кількість осіб взагалі

@@ -2,6 +2,7 @@ from code.spider import Spider
 from code.web import Web
 import code.config as code_config
 import random
+import math
 
 class Character:
     iterator = 0
@@ -35,27 +36,41 @@ class Character:
         self.person.set_robot(client)
 
     def iteration_done(self, client):
-        normal_angle = (0, -1.5707963705062866, 0)
-        normal_z = 0.088
         self.person.receive_position(client)
-        self.fitnes = 5 - abs(self.person.get_rotation()[0] - normal_angle[0]) \
-                    - abs(self.person.get_rotation()[1] - normal_angle[2]) \
-                    - abs(self.person.get_rotation()[2] - normal_angle[2]) \
-                    - 5 * abs(self.person.get_position()[2] - normal_z)
-        self.fitnes_radical += 5 - 1.2 * abs(self.person.get_rotation()[0] - normal_angle[0]) \
-                                        - 1.2 * abs(self.person.get_rotation()[1] - normal_angle[2]) \
-                                        - 1.2 * abs(self.person.get_rotation()[2] - normal_angle[2]) \
-                                        - 6 * abs(self.person.get_position()[2] - normal_z)
+        # print(self.person.get_rotation())
+        normal_angle = (0, -1.5707963705062866, 0)
+        p = 1
+        k = 10
+        self.fitnes += 1/(1 +
+                          math.pow(k * abs(self.person.get_rotation()[1] - normal_angle[1]), p) +
+                          math.pow(k * abs(self.person.get_rotation()[2] - normal_angle[2]), p)
+                          )
+        self.fitnes_radical += 1/(1 +
+                          math.pow(k * abs(self.person.get_rotation()[1] - normal_angle[1]), p) +
+                          math.pow(k * abs(self.person.get_rotation()[2] - normal_angle[2]), p)
+                          )
+
+        normal_z = 0.088
+        self.fitnes += math.e**(-200*(self.person.get_position()[2]-normal_z)**2)
+        self.fitnes_radical += math.e**(-200*(self.person.get_position()[2]-normal_z) ** 2)
+
+        self.fitnes += self.person.get_position()[1] / 10
+        self.fitnes_radical += self.person.get_position()[1] / 10
+
+        # print(self.fitnes, self.fitnes_radical)
+
         self.person.move(client, output_data=self.web.calculate_all(self.person.get_all()))
 
     def do_end_of_epoch(self):
-        self.fitnes += ((self.person.get_position()[1] + 10) / 20.0) * code_config.CYCLE_TIME
-        self.fitnes_radical += (self.person.get_position()[1]) * 10 * code_config.CYCLE_TIME
-        if self.fitnes_radical <= 0: self.fitnes_radical = 0.001
-        if self.fitnes <= 0: self.fitnes = 0.001
-        # print(self.fitnes, self.fitnes_radical)
+        # self.fitnes += ((self.person.get_position()[1] + 10) / 20.0) * code_config.CYCLE_TIME
+        # self.fitnes_radical += (self.person.get_position()[1]) * 10 * code_config.CYCLE_TIME
+        # if self.fitnes_radical <= 0: self.fitnes_radical = 0.001
+        # if self.fitnes <= 0: self.fitnes = 0.001
+        print(self.fitnes)#, self.fitnes_radical)
 
-
+    def reset_fitnes(self):
+        self.fitnes = 0
+        self.fitnes_radical = 0
 
     @staticmethod
     def calculate_all():

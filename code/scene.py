@@ -92,6 +92,17 @@ class Scene:
                 self._print_time("Додано обєкти")
                 self.__start_simulation()
                 self._print_time("Почалася симуляція")
+
+                self.client.simxSetBoolParameter(
+                    b'sim.boolparam_display_enabled',
+                    False,
+                    self.client.simxDefaultPublisher()
+                )
+                self.client.simxSetIntParameter(
+                    b'sim.intparam_speedmodifier',
+                    6,
+                    self.client.simxDefaultPublisher()
+                )
                 self.__loop()
                 self._print_time("Закінчився основний цикл")
                 self.__finish_simulation()
@@ -154,6 +165,8 @@ class Scene:
         Character.calculate_all()
 
         self.__save_to_db()
+        for i in range(len(self.character)):
+            self.character[i].reset_fitnes()
 
     def __save_to_db(self):
         self.csv.extend_row_by_dicts(map = Character.save_to_db_fitnes())
