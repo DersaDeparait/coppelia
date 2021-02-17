@@ -40,8 +40,9 @@ class Character:
         # print(self.person.get_rotation())
         normal_angle = (0, -1.5707963705062866, 0)
         size = -20
-        self.fitnes += math.e**(size*(self.person.get_rotation()[1]-normal_angle[1])**2)
-        self.fitnes_radical += math.e**(size*(self.person.get_rotation()[1]-normal_angle[1])**2)
+        # self.fitnes += math.e**(size*(self.person.get_rotation()[1]-normal_angle[1])**2)
+        # self.fitnes_radical += math.e**(size*(self.person.get_rotation()[1]-normal_angle[1])**2)
+        self.fitnes += 1 - abs(normal_angle[1] - self.person.get_rotation()[1])
 
         # normal_z = 0.088
         # self.fitnes += math.e**(-200*(self.person.get_position()[2]-normal_z)**2)
